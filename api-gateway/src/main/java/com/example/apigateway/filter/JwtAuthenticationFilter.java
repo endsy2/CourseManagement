@@ -11,36 +11,37 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-
-
 @Component
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
-   private static final String[] OPEN_API_ENDPOINTS={
-           "/users/login",
-           "/users/register",
-           "/users/refresh-token"
-   };//THE OPEN ENDPOINT
+    private static final String[] OPEN_API_ENDPOINTS = {
+            "/user-service/auth/login",
+            "/user-service/auth/register",
+            "/user-service/auth/refresh-token"
+    };
+
     private boolean isOpenEndpoint(String path) {
         for (String open : OPEN_API_ENDPOINTS) {
             if (path.startsWith(open)) return true;
         }
         return false;
-    }//LOOP ALL THE ROUTE THAT IS ACROSS THIS GATEWAY
+    }
+
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) { //ServerWebExchange it handle all request and response ,GatewayFilterChain is a sequence of filters
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
         if (isOpenEndpoint(path)) {
             return chain.filter(exchange); // skip security
         }
+
         HttpHeaders headers = exchange.getRequest().getHeaders();
-        String authHeader = headers.getFirst(HttpHeaders.AUTHORIZATION);//Reads the Authorization header from the request.
+        String authHeader = headers.getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
-        }//If header is missing or doesn’t start with "Bearer " → return 401 Unauthorized.
+        }
 
         String token = authHeader.substring(7);
 
@@ -60,15 +61,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         return chain.filter(exchange);
+    }
 
-
-
-
-
-
-
-
-        @Override
+    @Override
     public int getOrder() {
         return -1; // run before routing
     }

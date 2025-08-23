@@ -11,7 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name ="refresh_tokens")
+@Table(name ="refresh_tokens",schema = "user_service")
 @Getter
 @Setter
 @NoArgsConstructor

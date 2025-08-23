@@ -6,13 +6,11 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name ="users")
+@Table(name ="users", schema = "user_service")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,21 +19,21 @@ import java.util.Set;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id  ;
+    private int id;
 
-    @Column(nullable = false,unique = true,length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column (name="password_hash",nullable=false ,unique = true,length = 50)
+    @Column(name="password_hash", nullable=false, length = 100)
     private String passwordHash;
 
-    @Column(nullable=false,unique = false)
+    @Column(nullable=false, length = 50)
     private String email;
 
-    @Column(name ="first_name",nullable=false,unique = true,length = 50)
+    @Column(name="first_name", nullable=false, length = 50)
     private String firstName;
 
-    @Column (name="last_name",nullable = false,unique = true,length = 50)
+    @Column(name="last_name", nullable = false, length = 50)
     private String lastName;
 
     @Column(name = "is_enabled", nullable = false)
@@ -52,10 +50,9 @@ public class User {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
+            schema = "user_service",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new HashSet<>();
-    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<RefreshToken> refreshTokens = new ArrayList<>();
 }
