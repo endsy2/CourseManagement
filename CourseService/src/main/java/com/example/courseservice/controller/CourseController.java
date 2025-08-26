@@ -11,7 +11,7 @@ public class CourseController {
     public String test (){
         return "test";
     }
-    @GetMapping("/course")getCourse(){
-
-    }
+//    @GetMapping("/course")getCourse(){
+//
+//    }
 }

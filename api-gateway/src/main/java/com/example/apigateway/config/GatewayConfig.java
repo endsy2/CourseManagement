@@ -18,7 +18,5 @@ public class GatewayConfig {
                         .filters(f -> f.stripPrefix(1))
                         .uri("http://localhost:8090"))
                 .build();
-
-
     }
 }

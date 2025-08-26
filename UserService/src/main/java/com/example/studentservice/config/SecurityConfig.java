@@ -1,9 +1,9 @@
 package com.example.studentservice.config;
 
-
 import com.example.studentservice.filter.JwtAuthenticationFilter;
 import com.example.studentservice.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;  // ✅ for logging
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @RequiredArgsConstructor
 @EnableMethodSecurity
+@Slf4j  // ✅ enables log.info / log.debug
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
@@ -26,18 +27,22 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info(" Setting up SecurityFilterChain...");
+
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**","student-service/auth/**").permitAll() // login & register are public
+                        .requestMatchers("/auth/**", "student-service/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
+        log.info(" SecurityFilterChain configured successfully.");
         return http.build();
     }
 
     @Bean
     public DaoAuthenticationProvider authProvider() {
+        log.info("️ Setting up DaoAuthenticationProvider with BCrypt...");
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
@@ -46,11 +51,13 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        log.info(" Using BCryptPasswordEncoder.");
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        log.info("AuthenticationManager bean created.");
         return config.getAuthenticationManager();
     }
 }

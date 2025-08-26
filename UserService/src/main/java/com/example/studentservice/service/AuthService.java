@@ -9,6 +9,8 @@ import com.example.studentservice.repo.RoleRepository;
 import com.example.studentservice.repo.UserRepository;
 import com.example.studentservice.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
 import java.util.stream.Collectors;
 
 @Service
@@ -28,9 +31,13 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     public AuthResponse register(RegisterRequest request) {
+        logger.info("Register request received for username: {}", request.getUsername());
+
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            logger.warn("Username already taken: {}", request.getUsername());
             throw new RuntimeException("Username already taken");
         }
 
@@ -42,21 +49,34 @@ public class AuthService {
         user.setLastName(request.getLastName());
         user.setEnabled(true);
 
+        logger.info("User object created: {}", user.getUsername());
+
         // Assign multiple roles
-        Set<Role> userRoles = request.getRoles().stream()
-                .map(roleName -> roleRepository.findByName(roleName)
-                        .orElseThrow(() -> new RuntimeException("Role not found: " + roleName)))
-                .collect(Collectors.toSet());
+        Set<Role> userRoles = new HashSet<>();
+        if (request.getRoles() != null) {
+            userRoles = request.getRoles().stream()
+                    .map(roleName -> roleRepository.findByName(roleName)
+                            .orElseThrow(() -> new RuntimeException("Role not found: " + roleName)))
+                    .collect(Collectors.toSet());
+        } else {
+            logger.warn("No roles provided for user {}", request.getUsername());
+        }
+
+
 
         user.setRoles(userRoles);
+        logger.info("Roles set for user {}: {}", user.getUsername(),
+                userRoles.stream().map(Role::getName).collect(Collectors.joining(",")));
 
         userRepository.save(user);
+        logger.info("User saved in database: {}", user.getUsername());
 
         String rolesString = userRoles.stream()
                 .map(Role::getName)
                 .collect(Collectors.joining(",")); // "student,teacher"
 
         String token = jwtUtil.generateToken(user.getUsername(), rolesString);
+        logger.info("JWT token generated for user {}: {}", user.getUsername(), token);
 
         return new AuthResponse(token, user.getUsername(), rolesString);
     }
@@ -65,22 +85,36 @@ public class AuthService {
 
 
     public AuthResponse login(LoginRequest request) {
-        // Authenticate username & password
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
+        logger.info("Login attempt for username: {}", request.getUsername());
+
+        try {
+            // Authenticate username & password
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
+            logger.info("Authentication successful for username: {}", request.getUsername());
+        } catch (Exception e) {
+            logger.error("Authentication failed for username: {}", request.getUsername(), e);
+            throw new RuntimeException("Invalid username or password");
+        }
 
         // Load user entity
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> {
+                    logger.error("User not found: {}", request.getUsername());
+                    return new RuntimeException("User not found");
+                });
+        logger.info("User loaded from database: {}", user.getUsername());
 
         // Convert roles to comma-separated string
         String roles = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.joining(","));
+        logger.info("Roles for user {}: {}", user.getUsername(), roles);
 
         // Generate JWT token
         String token = jwtUtil.generateToken(user.getUsername(), roles);
+        logger.info("JWT token generated for user {}: {}", user.getUsername(), token);
 
         return new AuthResponse(token, "Bearer", user.getUsername(), roles);
     }
