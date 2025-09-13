@@ -67,7 +67,6 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             // Forward headers to downstream
             exchange = exchange.mutate()
                     .request(r -> r.headers(h -> {
-
                         h.set(HttpHeaders.AUTHORIZATION, "Bearer " + token); // forward original token
                     }))
                     .build();
