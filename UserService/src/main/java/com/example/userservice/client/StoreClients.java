@@ -6,6 +6,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(value = "user-service",url = "http://localhost:8100")
 public interface StoreClients {
-    @PostMapping("/createStudent")
-    String createStudent(@RequestBody)
+//    @PostMapping("/createStudent")
+//    String createStudent(@RequestBody)
 }

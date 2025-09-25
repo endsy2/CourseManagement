@@ -60,9 +60,9 @@ public class AuthService {
             logger.warn("No roles provided for user {}", request.getUsername());
         }
         user.setRoles(userRoles);
-        if (userRoles.stream().findAny()=="student") {
-
-        }
+//        if (userRoles.stream().findAny()=="student") {
+//
+//        }
         logger.info("Roles set for user {}: {}", user.getUsername(),
                 userRoles.stream().map(Role::getName).collect(Collectors.joining(",")));
 
