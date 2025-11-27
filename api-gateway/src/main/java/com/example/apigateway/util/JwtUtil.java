@@ -3,12 +3,14 @@ package com.example.apigateway.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.security.Key;
 import java.util.Date;
 
 public class JwtUtil {
-    private static final String JWT_SECRET = "kSoolXL5fFhAGbtSgdbKx9u8OCvN90xDQszy9mwODk=";
+    @Value("${jwt.public.key}")
+    private static String JWT_SECRET ;
     private static final Key key = Keys.hmacShaKeyFor(JWT_SECRET.getBytes());
     public static Claims validateToken (String token){
         return Jwts.parserBuilder()

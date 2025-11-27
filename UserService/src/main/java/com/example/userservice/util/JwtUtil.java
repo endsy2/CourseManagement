@@ -4,32 +4,42 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
+    @Value("${jwt.private.key}")
+    private String privateKeyStr;
+
+    @Value("${jwt.public.key}")
+    private String publicKeyStr;
+
+    private PrivateKey privateKey;
+    private PublicKey publicKey;
+
     private static final long EXPIRATION = 1000 * 60 * 60; // 1 hour
 
-    private final PrivateKey privateKey;
-    private final PublicKey publicKey;
+    @PostConstruct
+    public void initKeys() throws Exception {
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
-    public JwtUtil() throws Exception {
-        // Generate RSA key pair (or load from file)
-        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-        generator.initialize(2048);
-        KeyPair keyPair = generator.generateKeyPair();
-        this.privateKey = keyPair.getPrivate();
-        this.publicKey = keyPair.getPublic();
+        byte[] privateBytes = Base64.getDecoder().decode(privateKeyStr);
+        byte[] publicBytes = Base64.getDecoder().decode(publicKeyStr);
+
+        privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateBytes));
+        publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(publicBytes));
     }
 
-    // Generate JWT using private key
+    // token generation
     public String generateToken(String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
@@ -40,7 +50,6 @@ public class JwtUtil {
                 .compact();
     }
 
-    // Extract username
     public String extractUsername(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(publicKey)
@@ -50,21 +59,12 @@ public class JwtUtil {
         return claims.getSubject();
     }
 
-    // Validate token
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(publicKey)
-                    .build()
-                    .parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(publicKey).build().parseClaimsJws(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (Exception e) {
             return false;
         }
-    }
-
-    // Getter for public key if needed externally
-    public PublicKey getPublicKey() {
-        return publicKey;
     }
 }

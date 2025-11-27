@@ -17,6 +17,7 @@ public class AuthImpl implements AuthController {
     private final AuthService authService;
 
     @Override
+    @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
@@ -24,5 +25,10 @@ public class AuthImpl implements AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+    @Override
+    @GetMapping("/test")
+    public String test() {
+        return "test";
     }
 }

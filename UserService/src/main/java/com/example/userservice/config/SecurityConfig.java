@@ -1,6 +1,8 @@
 package com.example.userservice.config;
 
-import com.example.userservice.filter.JwtAuthenticationFilter;
+//import com.example.userservice.filter.JwtAuthenticationFilter;
+//import com.example.userservice.filter.JwtAuthenticationFilter;
+//import com.example.userservice.filter.JwtAuthenticationFilter;
 import com.example.userservice.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;  // ✅ for logging
@@ -23,7 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
-    private final JwtAuthenticationFilter jwtAuthFilter;
+//    private final JwtAuthenticationFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -31,11 +33,9 @@ public class SecurityConfig {
 
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "student-service/auth/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
+                        .anyRequest().permitAll()
+                );
+//                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         log.info(" SecurityFilterChain configured successfully.");
         return http.build();
     }

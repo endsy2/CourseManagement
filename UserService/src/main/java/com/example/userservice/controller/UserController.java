@@ -27,7 +27,4 @@ public class UserController {
     public UserDTO findUserByName(@RequestParam String name){
         return userService.findUserByName(name);
     }
-
-
-
 }

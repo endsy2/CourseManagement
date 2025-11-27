@@ -14,4 +14,6 @@ public interface AuthController  {
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request);
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request);
+    @GetMapping("/test")
+    public String test();
 }

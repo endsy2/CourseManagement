@@ -1,87 +1,80 @@
 package com.example.apigateway.filter;
 
-import com.example.apigateway.util.JwtUtil;
 import io.jsonwebtoken.Claims;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.core.Ordered;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import io.jsonwebtoken.Jwts;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+import org.springframework.web.filter.OncePerRequestFilter;
 
+import java.io.IOException;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+import java.util.Collections;
+
+@Slf4j
 @Component
-public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private final PublicKey publicKey;
 
-    private static final String[] OPEN_API_ENDPOINTS = {
-            "/user-service/auth/login",
-            "/user-service/auth/register",
-            "/user-service/auth/refresh-token"
-    };
-
-    private boolean isOpenEndpoint(String path) {
-        for (String open : OPEN_API_ENDPOINTS) {
-            if (path.startsWith(open)) return true;
-        }
-        return false;
+    public JwtAuthenticationFilter(@Value("${jwt.public.key}") String publicKeyStr) throws Exception {
+        byte[] publicBytes = Base64.getDecoder().decode(publicKeyStr);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        this.publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(publicBytes));
+        log.info("Public key loaded successfully");
     }
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        String path = exchange.getRequest().getURI().getPath();
-        String method = exchange.getRequest().getMethod() != null
-                ? exchange.getRequest().getMethod().name()
-                : "UNKNOWN";
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getRequestURI();
+        log.info("Request path: {}", path);
 
-        log.info("Incoming request: {} {}", method, path);
-
-        if (isOpenEndpoint(path)) {
-            log.info("Open endpoint, skipping JWT filter: {}", path);
-            return chain.filter(exchange);
+        // Skip open endpoints
+        if (path.startsWith("/user-service/auth") || "OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String authHeader = request.getHeader("Authorization");
+        log.info("Authorization header: {}", authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("Missing or invalid Authorization header for request: {} {}", method, path);
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            log.warn("Missing or invalid Authorization header");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
 
         String token = authHeader.substring(7);
-        log.info("JWT token detected for request: {} {}", method, path);
-
         try {
-            Claims claims = JwtUtil.validateToken(token);
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(publicKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
-            String username = claims.getSubject();
-            String roles = claims.get("roles", String.class);
+            log.info("JWT validated for user: {}", claims.getSubject());
 
-            log.info("JWT validated. User: {}, Roles: {}", username, roles);
+            // Set authentication in Spring Security context
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(claims.getSubject(), null, Collections.emptyList());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // Forward headers to downstream
-            exchange = exchange.mutate()
-                    .request(r -> r.headers(h -> {
-                        h.set(HttpHeaders.AUTHORIZATION, "Bearer " + token); // forward original token
-                    }))
-                    .build();
+            filterChain.doFilter(request, response);
 
         } catch (Exception e) {
-            log.error("JWT validation failed for request: {} {}. Error: {}", method, path, e.getMessage());
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            log.error("JWT validation failed: {}", e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
-
-        return chain.filter(exchange);
-    }
-
-    @Override
-    public int getOrder() {
-        return -1; // run before routing
     }
 }

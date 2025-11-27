@@ -33,8 +33,4 @@ public class UserService {
         // Map entity to DTO
         return new UserDTO((long)user.getId(), user.getUsername(), user.getEmail(),user.getRoles());
     }
-
-
-
-
 }
