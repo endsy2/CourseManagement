@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TeacherDTO {
-    private Long id;
+    private int id;
     private String username;
     private String email;
 }

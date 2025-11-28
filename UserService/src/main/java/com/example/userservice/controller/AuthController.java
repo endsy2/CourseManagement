@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.*;
 
 
 public interface AuthController  {
-    @PostMapping("/register")
+//    @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request);
-    @PostMapping("/login")
+//    @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request);
-    @GetMapping("/test")
+//    @GetMapping("/test")
     public String test();
 }
