@@ -1,12 +1,9 @@
-package com.example.userservice.dto;
+package com.example.courseservice.Dto.mapping;
 
-import com.example.userservice.model.Role;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Set;
+@Data
 @Getter
 @Setter
 @AllArgsConstructor

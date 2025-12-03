@@ -27,9 +27,13 @@ public class ProxyController {
     private ResponseEntity<String> forward(String url, HttpServletRequest request, String body) {
         try {
             HttpHeaders headers = new HttpHeaders();
-            request.getHeaderNames().asIterator().forEachRemaining(name -> 
+            request.getHeaderNames().asIterator().forEachRemaining(name ->
                 headers.add(name, request.getHeader(name))
             );
+            if (request.getQueryString() != null) {
+                url = url + "?" + request.getQueryString();
+            }
+            log.info("Forwarding to: {}", url);
 
             HttpEntity<String> entity = new HttpEntity<>(body, headers);
             return restTemplate.exchange(url, HttpMethod.valueOf(request.getMethod()), entity, String.class);

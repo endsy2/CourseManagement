@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } else {
             log.debug("No valid Authorization header found. Skipping JWT extraction.");
         }
-
+        log.debug("JWT Token detected in JWT: {}", token);
         // If username is valid and no authentication exists yet
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             log.debug("Loading user details for: {}", username);
