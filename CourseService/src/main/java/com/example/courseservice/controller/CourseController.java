@@ -3,6 +3,7 @@ import com.example.courseservice.Dto.mapping.CourseDTO;
 import com.example.courseservice.Dto.request.RequestCourseDto;
 import com.example.courseservice.Dto.response.ResponseCourseDto;
 import com.example.courseservice.model.Course;
+import com.example.courseservice.producer.RabbitMQProducer;
 import com.example.courseservice.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CourseController {
     private final CourseService courseService;
+    private final RabbitMQProducer rabbitMQProducer;
 
     @GetMapping("/getCourse")
     public ResponseEntity <List<Course>> getCourse() {
@@ -46,5 +48,10 @@ public class CourseController {
     public ResponseEntity<String> deleteCourse(@PathVariable("id") int id) {
         String course=courseService.deleteCourseById(id);
         return ResponseEntity.ok(course);
+    }
+    @GetMapping("/send")
+    public String sendMessage(@RequestParam String message) {
+        rabbitMQProducer.sendMessage(message);
+        return "Message sent to RabbitMQ: " + message;
     }
 }

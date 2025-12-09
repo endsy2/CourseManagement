@@ -8,7 +8,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/coursemanagement
     username: postgres
-    password: user
+    password: postgres
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,6 +19,11 @@ spring:
     show-sql: true
   cache:
     type: redis
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 
 eureka:
   client:
