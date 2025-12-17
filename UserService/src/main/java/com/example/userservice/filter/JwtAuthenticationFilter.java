@@ -7,7 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j; // ✅ Lombok logger
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -72,8 +72,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        boolean skip = path.startsWith("/auth/login") || path.startsWith("/auth/register");
-        if (skip) {
+        boolean skip = path.startsWith("/auth/login") ;
+        boolean skip2 = path.startsWith("/auth/register") ;
+        if (skip ||skip2) {
             log.debug("Skipping JWT filter for public endpoint: {}", path);
         }
         return skip;

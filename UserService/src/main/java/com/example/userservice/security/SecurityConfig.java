@@ -1,8 +1,11 @@
-package com.example.userservice.config;
+package com.example.userservice.security;
 
 //import com.example.userservice.filter.JwtAuthenticationFilter;
 //import com.example.userservice.filter.JwtAuthenticationFilter;
 //import com.example.userservice.filter.JwtAuthenticationFilter;
+import com.example.userservice.filter.JwtAuthenticationFilter;
+import com.example.userservice.security.handler.CustomerAccessDeniedHandler;
+import com.example.userservice.security.handler.RestAuthenticationEntryPoint;
 import com.example.userservice.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;  // ✅ for logging
@@ -25,17 +28,23 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final CustomerAccessDeniedHandler accessDeniedHandler;
 //    private final JwtAuthenticationFilter jwtAuthFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, RestAuthenticationEntryPoint restAuthenticationEntryPoint, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         log.info(" Setting up SecurityFilterChain...");
 
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
-                );
-//                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                )
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler(accessDeniedHandler)
+                        .authenticationEntryPoint(restAuthenticationEntryPoint)
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         log.info(" SecurityFilterChain configured successfully.");
         return http.build();
     }

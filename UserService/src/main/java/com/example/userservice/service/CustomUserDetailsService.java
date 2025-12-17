@@ -1,5 +1,6 @@
 package com.example.userservice.service;
 
+import com.example.userservice.exception.ResourceNotFoundException;
 import com.example.userservice.model.UserPrincipal;
 import com.example.userservice.model.User; // <-- entity User
 import com.example.userservice.repo.UserRepository;

@@ -1,11 +1,10 @@
 package com.example.userservice.service;
-import com.example.userservice.dto.AuthResponse;
-import com.example.userservice.dto.LoginRequest;
-import com.example.userservice.dto.RegisterRequest;
+import com.example.userservice.dto.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
 public interface AuthService {
-    public AuthResponse register( RegisterRequest request);
-    public AuthResponse login(@RequestBody LoginRequest request);
+    public ResponseEntity<AuthResponse> register( RegisterRequest request);
+    public ResponseEntity<AuthResponse> login(LoginRequest request);
+    public ResponseEntity<String> logout(String username);
 }

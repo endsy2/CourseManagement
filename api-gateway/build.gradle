@@ -1,28 +1,26 @@
 plugins {
-    id 'java'
-    id 'org.springframework.boot' version '3.5.4'
+    id 'org.springframework.boot' version '3.3.5'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
-description = 'api-gateway'
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
 
 repositories {
     mavenCentral()
 }
 
-ext {
-    set('springCloudVersion', "2025.0.0")
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
+ext {
+    springCloudVersion = '2023.0.3'
+}
 dependencies {
+
     // Spring MVC
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
@@ -34,15 +32,13 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-    // Eureka Client (optional)
+    // Eureka Client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-
 }
-
 
 dependencyManagement {
     imports {

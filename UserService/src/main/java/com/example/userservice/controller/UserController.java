@@ -13,6 +13,7 @@ import com.example.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,6 +40,7 @@ public class UserController  {
 
 
     @GetMapping("getUserByName")
+    @PreAuthorize("hasRole('admin')")
     public ResponseEntity<UserDTO> getUserByName(@RequestParam("name") String name) {
         UserDTO users=userService.findUserByName(name);
         return ResponseEntity.ok(users);
@@ -52,9 +54,10 @@ public class UserController  {
     }
 
     @GetMapping("test")
-    public void test(@RequestParam("message")  String message) {
+    public void test() {
 //        System.out.println("Received message: " + message);
-        producer1.sendMessage(message);
+        producer1.sendMessage();
 //        return message;
     }
+
 }

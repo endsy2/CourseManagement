@@ -13,6 +13,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Map;
 
 @Component
 public class JwtUtil {
@@ -26,7 +27,8 @@ public class JwtUtil {
     private PrivateKey privateKey;
     private PublicKey publicKey;
 
-    private static final long EXPIRATION = 1000 * 60 * 60; // 1 hour
+    private static final long ACCESSTOKENEXPIRATION = 1000 * 60 * 60; // 1 hour
+    private static final long REFRESHTOKENEXPIRATION = 1000 * 60 * 60 * 24;
 
     @PostConstruct
     public void initKeys() throws Exception {
@@ -45,19 +47,38 @@ public class JwtUtil {
                 .setSubject(username)
                 .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESSTOKENEXPIRATION))
+                .signWith(privateKey, SignatureAlgorithm.RS256)
+                .compact();
+    }
+    public String generateRefreshToken(String username,String role) {
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("role", role)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESHTOKENEXPIRATION))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
     }
 
+
+
     public String extractUsername(String token) {
-        Claims claims = Jwts.parserBuilder()
+        return extractAllClaims(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
                 .setSigningKey(publicKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        return claims.getSubject();
     }
+
 
     public boolean validateToken(String token) {
         try {

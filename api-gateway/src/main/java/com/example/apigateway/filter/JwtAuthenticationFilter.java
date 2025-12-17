@@ -41,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info("Request path: {}", path);
 
         // Skip open endpoints
-        if (path.startsWith("/user-service/auth") || "OPTIONS".equalsIgnoreCase(request.getMethod())) {
+        if (path.startsWith("/user-service/auth/login")||path.startsWith("/user-service/auth/register") || "OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }
