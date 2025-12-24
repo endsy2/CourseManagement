@@ -7,4 +7,5 @@ public interface AuthService {
     public ResponseEntity<AuthResponse> register( RegisterRequest request);
     public ResponseEntity<AuthResponse> login(LoginRequest request);
     public ResponseEntity<String> logout(String username);
+    public ResponseEntity<AuthResponse> resetPassword(String token);
 }

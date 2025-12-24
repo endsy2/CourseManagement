@@ -161,4 +161,8 @@ public class AuthImpl implements AuthService {
         return ResponseEntity.ok("User Logged out");
     }
 
+    @Override
+    public ResponseEntity<AuthResponse> resetPassword(String token) {
+        return null;
+    }
 }

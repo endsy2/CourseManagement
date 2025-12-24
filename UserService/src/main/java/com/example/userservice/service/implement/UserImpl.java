@@ -1,6 +1,6 @@
 package com.example.userservice.service.implement;
 
-import com.example.userservice.config.DirectExchangeConfig;
+
 import com.example.userservice.dto.UserDTO;
 import com.example.userservice.model.Role;
 import com.example.userservice.model.User;

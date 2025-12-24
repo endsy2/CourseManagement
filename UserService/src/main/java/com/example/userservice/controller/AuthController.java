@@ -77,4 +77,8 @@ public class  AuthController  {
                 "refreshToken", newRefreshToken
         ));
     }
+//    @PostMapping("resetPassword")
+//    public ResponseEntity<Map<String,String>> resetPassword(@Valid @RequestBody String newpassword){
+//        return
+//    }
 }
